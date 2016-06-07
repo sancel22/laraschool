@@ -1,6 +1,4 @@
-@if(Session::has('success'))
-    {{ Session::get('success')}}
-@endif
+@include('flash')
 <form action="/news/{{ $news->id }}" method="POST">
     {{ method_field('PATCH')}}
     {{ csrf_field() }}

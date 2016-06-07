@@ -19,7 +19,7 @@ class NewsControllerTest extends TestCase
     }
 
     /** @test */
-    public function title_or_body_should_not_be_empty()
+    public function title_and_body_should_not_be_empty()
     {
         $this->login();
         $this->visit('news/create')
@@ -28,17 +28,22 @@ class NewsControllerTest extends TestCase
             ->see('The title field is required.')
             ->see('The body field is required.');
     }
+
     /** @test */
     public function admin_can_add_new_news()
     {
         $this->login();
         $new_news = factory(News::class)->make();
-        $this->visit('news/create')
+        $this->visit('news')
+            ->seeLink('add')
+            ->click('add')
+            ->seePageIs('/news/create')
             ->type($new_news->title, 'title')
-             ->type($new_news->body, 'body')
-             ->press('submit')
-             ->seeInDatabase('news', ['title' => $new_news->title])
-             ->see('/news');
+            ->type($new_news->body, 'body')
+            ->press('submit')
+            ->seeInDatabase('news', ['title' => $new_news->title])
+            ->seePageIs('/news')
+            ->seeText('Successfully Added');
     }
 
     /** @test */
@@ -59,15 +64,15 @@ class NewsControllerTest extends TestCase
             ->see('Update Title');
     }
 
-        /** @test */
-    public function edit_page_body_should_not_be_empty()
+    /** @test */
+    public function admin_edit_page_body_should_not_be_empty()
     {
         $this->login();
         $news_to_edit = factory(News::class)->create();
         $edit_page = "/news/{$news_to_edit->id}/edit";
 
         $this->visit("news")
-            ->see('edit')
+            ->seeLink('edit')
             ->click('edit')
             ->seePageIs($edit_page)
             ->type('Update Title', 'title')
@@ -75,5 +80,32 @@ class NewsControllerTest extends TestCase
             ->press('submit')
             ->seePageIs($edit_page)
             ->see('The body field is required.');
+    }
+
+    /** @test */
+    public function admin_can_delete_news_entry()
+    {
+        $this->login();
+        $news_to_delete = factory(News::class)->create();
+        $delete = "/news/{$news_to_delete->id}";
+        $this->visit("news")
+            ->seeText($news_to_delete->title)
+            ->see('delete')
+            ->press('delete')
+            ->seePageIs('/news')
+            ->seeText('Successfully Deleted')
+            ->dontSeeText($news_to_delete->title);
+    }
+
+    /** @test */
+    public function admin_view_specific_news()
+    {
+        $this->login();
+        $news_to_view =  factory(News::class)->create();
+        $this->visit('news')
+            ->seeLink($news_to_view->title)
+            ->click($news_to_view->title)
+            ->seePageIs("/news/{$news_to_view->id}")
+            ->seeText($news_to_view->body);
     }
 }

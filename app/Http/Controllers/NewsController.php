@@ -32,7 +32,8 @@ class NewsController extends Controller
         ]);
         $news = new News();
         $news->create($request->all());
-        return back();
+        $request->session()->flash('success', 'Successfully Added');
+        return redirect('/news');
     }
 
     public function edit(News $news)
@@ -54,6 +55,13 @@ class NewsController extends Controller
 
     public function show(News $news)
     {
-        die('not here');
+        return view('news.show', compact('news'));
+    }
+
+    public function destroy(Request $request, News $news)
+    {
+        $news->delete();
+        $request->session()->flash('success', 'Successfully Deleted');
+        return back();
     }
 }
